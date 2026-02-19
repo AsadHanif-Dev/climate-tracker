@@ -2,30 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
+/* ── Design tokens ─────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --bg-page:        #f2f4f2;
+    --bg-surface:     #ffffff;
+    --bg-subtle:      #f7f9f7;
+    --border:         #e2e6e2;
+    --border-subtle:  #eef0ee;
+
+    --text-primary:   #1d211d;
+    --text-secondary: #545b54;
+    --text-muted:     #878f87;
+
+    --accent:         #2e8b5a;
+    --accent-hover:   #1f6b44;
+    --accent-subtle:  #eef6f1;
+    --accent-ring:    #2e8b5a40;
+
+    --travel:  #5778a0;
+    --energy:  #a67240;
+    --food:    #2e8b5a;
+
+    --radius-card: 1rem;
+  }
+
+  .dark {
+    --bg-page:        #111113;
+    --bg-surface:     #19191d;
+    --bg-subtle:      #222227;
+    --border:         #2c2c32;
+    --border-subtle:  #242429;
+
+    --text-primary:   #e8e8ea;
+    --text-secondary: #94949e;
+    --text-muted:     #5f5f69;
+
+    --accent:         #3daa72;
+    --accent-hover:   #4dbf82;
+    --accent-subtle:  #1b2820;
+    --accent-ring:    #3daa7240;
+
+    --travel:  #6b8fb8;
+    --energy:  #c4925a;
+    --food:    #3daa72;
+  }
+
+  /* Tabular nums for all numeric data */
+  .font-tabular {
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
 }
 
-.dark {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 17, 24, 39;
-  --background-end-rgb: 17, 24, 39;
+/* ── Base styles ───────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+  }
+
+  /* Remove default autofill yellow background */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px var(--bg-surface) inset;
+    -webkit-text-fill-color: var(--text-primary);
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
+/* ── Component utilities ───────────────────────────────────────────────── */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  .metric-value {
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--bg-subtle) 25%,
+      var(--border-subtle) 50%,
+      var(--bg-subtle) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 0.375rem;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Input focus ring using design token */
+  .input-ring {
+    @apply outline-none ring-0;
+    transition: box-shadow 0.15s ease;
+  }
+  .input-ring:focus {
+    box-shadow: 0 0 0 2px var(--accent-ring), 0 0 0 1px var(--accent);
+  }
+
+  /* Category pill colors */
+  .pill-travel  { background-color: color-mix(in srgb, var(--travel) 12%, transparent);  color: var(--travel); }
+  .pill-energy  { background-color: color-mix(in srgb, var(--energy) 12%, transparent);  color: var(--energy); }
+  .pill-food    { background-color: color-mix(in srgb, var(--food)   12%, transparent);  color: var(--food);   }
+
+  /* Scrollbar — thin, themed */
+  .thin-scrollbar::-webkit-scrollbar       { width: 4px; height: 4px; }
+  .thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .thin-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 }
+

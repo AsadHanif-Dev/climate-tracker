@@ -1,90 +1,189 @@
-'use client';
+﻿'use client';
 
-export const CarIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+/**
+ * Icon system — stroke-based, 24x24 viewBox, strokeWidth 1.5
+ * All icons use fill="none" stroke="currentColor" for monochrome flexibility.
+ * Size is controlled via className (default: w-[18px] h-[18px]).
+ */
+
+type IconProps = { className?: string };
+
+const base = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.5,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  viewBox: '0 0 24 24',
+  'aria-hidden': true as const,
+};
+
+/* Travel */
+export const CarIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M5 17H3v-5l2.5-6h11L19 12v5h-2" />
+    <circle cx="7.5" cy="17.5" r="1.5" />
+    <circle cx="16.5" cy="17.5" r="1.5" />
+    <path d="M5 12h14" />
   </svg>
 );
 
-export const BusIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+export const BusIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <rect x="4" y="3" width="16" height="14" rx="2" />
+    <path d="M4 11h16M8 3v8M16 3v8" />
+    <circle cx="8" cy="19" r="1.5" />
+    <circle cx="16" cy="19" r="1.5" />
+    <path d="M8 17.5V17m8 .5V17" />
   </svg>
 );
 
-export const PlaneIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+export const PlaneIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M21 12.89l-3.5 2.5-5.5-1.5L3.5 19 2 17.5l6-5L5.5 8 7 7l4 1.5L16.5 5 21 5.5l.5 4.5-1 2.89z" />
   </svg>
 );
 
-export const LightningIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
+/* Energy */
+export const LightningIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M13 2L4.5 13.5H11L10 22l8.5-12H13L13 2z" />
   </svg>
 );
 
-export const FlameIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+export const FlameIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M12 2c0 4-4 6-4 10a4 4 0 008 0c0-2-1-3.5-2-5-1 1.5-2 2-2 5" />
+    <path d="M12 12c0 1.5-1 2.5-1 4a1 1 0 002 0c0-1.5-1-2.5-1-4z" />
   </svg>
 );
 
-export const LeafIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/>
+/* Food */
+export const MeatIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <circle cx="12" cy="12" r="8" />
+    <path d="M9 9.5c.5-1 1.5-1.5 3-1.5s2.5.5 3 1.5" />
+    <path d="M8 13.5c.5 1.5 2 2.5 4 2.5s3.5-1 4-2.5" />
+    <path d="M12 8v8" />
   </svg>
 );
 
-export const MeatIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-    <circle cx="9" cy="9" r="1.5"/>
-    <circle cx="15" cy="9" r="1.5"/>
-    <circle cx="12" cy="13" r="1.5"/>
-    <circle cx="9" cy="15" r="1.5"/>
-    <circle cx="15" cy="15" r="1.5"/>
+export const CheeseIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M3 14h18v5a1 1 0 01-1 1H4a1 1 0 01-1-1v-5z" />
+    <path d="M3 14L12 4l9 10" />
+    <circle cx="10" cy="15.5" r="1" />
+    <circle cx="15" cy="16.5" r="0.75" />
   </svg>
 );
 
-export const CheeseIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M22 10l-10-8L2 10v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V10zm-11 7c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm5-3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm1-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+export const VegetableIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M12 22V12" />
+    <path d="M12 12C12 7 7 4 4 5c1 3 3 6 8 7z" />
+    <path d="M12 12c0-5 5-8 8-7-1 3-3 6-8 7z" />
+    <path d="M12 17c-3 0-5-2-6-4 1.5-.5 4 0 6 4z" />
   </svg>
 );
 
-export const VegetableIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2C9.24 2 7 4.24 7 7c0 1.85 1.01 3.45 2.5 4.31v8.19c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-8.19C14.99 10.45 16 8.85 16 7c0-2.76-2.24-5-4-5zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
+/* UI / Stats */
+export const CalendarIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <rect x="3" y="4" width="18" height="17" rx="2" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
   </svg>
 );
 
-export const CalendarIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+export const ChartBarIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M3 20h18" />
+    <rect x="5" y="12" width="3" height="8" rx="0.5" />
+    <rect x="10.5" y="7" width="3" height="13" rx="0.5" />
+    <rect x="16" y="3" width="3" height="17" rx="0.5" />
   </svg>
 );
 
-export const ChartBarIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/>
+export const TrendingUpIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M3 17l5-5 4 4 9-10" />
+    <path d="M14 6h7v7" />
   </svg>
 );
 
-export const TrendingUpIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+export const TrendingDownIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M3 7l5 5 4-4 9 10" />
+    <path d="M14 18h7v-7" />
   </svg>
 );
 
-export const ListIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+export const ListIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M9 6h11M9 12h11M9 18h11" />
+    <circle cx="4" cy="6" r="1" fill="currentColor" stroke="none" />
+    <circle cx="4" cy="12" r="1" fill="currentColor" stroke="none" />
+    <circle cx="4" cy="18" r="1" fill="currentColor" stroke="none" />
   </svg>
 );
 
-export const GlobeIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+export const GlobeIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3.6 9h16.8M3.6 15h16.8" />
+    <path d="M12 3c-2.5 3-4 5.5-4 9s1.5 6 4 9" />
+    <path d="M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9" />
+  </svg>
+);
+
+export const LeafIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M20 4C12 4 5 9 5 18c3-3 6-4 8-4 0-5 3-8 7-10z" />
+    <path d="M5 18c2-3 5-5 8-4" />
+  </svg>
+);
+
+export const PlusIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+export const XIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
+
+export const SunIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+  </svg>
+);
+
+export const MoonIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+  </svg>
+);
+
+export const TrashIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+    <path d="M10 11v5M14 11v5" />
+  </svg>
+);
+
+export const InfoIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 8h.01M12 11v5" />
+  </svg>
+);
+
+export const ChevronDownIcon = ({ className = 'w-[18px] h-[18px]' }: IconProps) => (
+  <svg className={className} {...base}>
+    <path d="M6 9l6 6 6-6" />
   </svg>
 );

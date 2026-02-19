@@ -1,7 +1,6 @@
-'use client';
+﻿'use client';
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/constants/co2Factors';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface CategoryBreakdownProps {
   data: {
@@ -9,116 +8,140 @@ interface CategoryBreakdownProps {
     energy: number;
     food: number;
   };
+  loading?: boolean;
 }
 
-export default function CategoryBreakdown({ data }: CategoryBreakdownProps) {
+// Muted, desaturated palette â€” no neon
+const CATEGORIES = [
+  { key: 'travel', label: 'Travel',  color: 'var(--travel)', bar: '#5778a0' },
+  { key: 'energy', label: 'Energy',  color: 'var(--energy)', bar: '#a67240' },
+  { key: 'food',   label: 'Food',    color: 'var(--food)',   bar: '#2e8b5a' },
+] as const;
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  const d = payload[0];
+  return (
+    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 shadow-card-md">
+      <p className="text-xs font-semibold text-[var(--text-primary)]">{d.name}</p>
+      <p className="metric-value text-sm text-[var(--text-secondary)] mt-0.5">
+        {d.value.toFixed(2)} <span className="text-xs text-[var(--text-muted)]">kg CO₂</span>
+      </p>
+    </div>
+  );
+};
+
+const EmptyState = ({ label }: { label: string }) => (
+  <div className="flex flex-col items-center justify-center h-36 gap-2">
+    <div className="w-10 h-10 rounded-full border-2 border-dashed border-[var(--border)] flex items-center justify-center">
+      <svg className="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" /><path d="M12 8v4l2 2" />
+      </svg>
+    </div>
+    <p className="text-xs text-[var(--text-muted)]">{label}</p>
+  </div>
+);
+
+export default function CategoryBreakdown({ data, loading = false }: CategoryBreakdownProps) {
   const total = data.travel + data.energy + data.food;
 
-  if (total === 0) {
+  const chartData = CATEGORIES.map(cat => ({
+    name:  cat.label,
+    value: Number(data[cat.key].toFixed(3)),
+    color: cat.bar,
+  })).filter(d => d.value > 0);
+
+  if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-          Category Breakdown
-        </h2>
-        <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
-          No data to display
+      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-card p-6">
+        <div className="skeleton h-3 w-40 mb-5" />
+        <div className="skeleton h-40 w-full mb-4" />
+        <div className="grid grid-cols-3 gap-3">
+          {[0,1,2].map(i => <div key={i} className="skeleton h-14" />)}
         </div>
       </div>
     );
   }
 
-  const chartData = [
-    { name: CATEGORY_LABELS.travel, value: Number(data.travel.toFixed(2)), color: CATEGORY_COLORS.travel },
-    { name: CATEGORY_LABELS.energy, value: Number(data.energy.toFixed(2)), color: CATEGORY_COLORS.energy },
-    { name: CATEGORY_LABELS.food, value: Number(data.food.toFixed(2)), color: CATEGORY_COLORS.food },
-  ].filter(item => item.value > 0);
-
-  const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="font-semibold text-sm"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-        Today&apos;s Category Breakdown
-      </h2>
-      {/* Debug info - can be removed in production */}
-      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-        Travel: {data.travel.toFixed(2)} | Energy: {data.energy.toFixed(2)} | Food: {data.food.toFixed(2)} kg CO₂
+    <div className="bg-[var(--bg-surface)] rounded-2xl shadow-card p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Today's Breakdown</h2>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">Emissions by category</p>
+        </div>
+        {total > 0 && (
+          <span className="metric-value text-xs font-semibold text-[var(--text-secondary)] bg-[var(--bg-subtle)] border border-[var(--border)] px-2.5 py-1 rounded-full">
+            {total.toFixed(2)} kg total
+          </span>
+        )}
       </div>
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={renderCustomizedLabel}
-              outerRadius={100}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip 
-              formatter={(value: number) => `${value.toFixed(2)} kg CO₂`}
-              contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: '1px solid #ccc',
-                borderRadius: '4px'
-              }}
-            />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-4">
-        {chartData.map((item) => (
-          <div key={item.name} className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {item.name}
-              </span>
-            </div>
-            <p className="text-lg font-bold text-gray-900 dark:text-white">
-              {item.value.toFixed(2)} kg
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {((item.value / total) * 100).toFixed(0)}% of total
-            </p>
+
+      {total === 0 ? (
+        <EmptyState label="No activities logged today" />
+      ) : (
+        <>
+          {/* Donut chart */}
+          <div className="h-40 mb-5">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={44}
+                  outerRadius={68}
+                  paddingAngle={3}
+                  dataKey="value"
+                  strokeWidth={0}
+                  animationBegin={0}
+                  animationDuration={600}
+                  animationEasing="ease-out"
+                >
+                  {chartData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        ))}
-      </div>
+
+          {/* Category legend rows */}
+          <div className="space-y-2.5">
+            {CATEGORIES.filter(cat => data[cat.key] > 0).map(cat => {
+              const val  = data[cat.key];
+              const pct  = total > 0 ? (val / total) * 100 : 0;
+              return (
+                <div key={cat.key} className="flex items-center gap-3">
+                  {/* Color dot */}
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: cat.bar }}
+                  />
+                  {/* Label */}
+                  <span className="text-xs text-[var(--text-secondary)] w-14 shrink-0">{cat.label}</span>
+                  {/* Progress bar */}
+                  <div className="flex-1 h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, backgroundColor: cat.bar }}
+                    />
+                  </div>
+                  {/* Values */}
+                  <div className="flex items-baseline gap-1 shrink-0">
+                    <span className="metric-value text-xs font-semibold text-[var(--text-primary)]">{val.toFixed(2)}</span>
+                    <span className="text-2xs text-[var(--text-muted)]">kg</span>
+                    <span className="text-2xs text-[var(--text-muted)] ml-0.5">({pct.toFixed(0)}%)</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
+

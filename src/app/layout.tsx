@@ -3,7 +3,13 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  // Include numeric axes for tabular number support
+  axes: ['opsz'],
+})
 
 export const metadata: Metadata = {
   title: 'Climate Impact Tracker',
@@ -16,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body className={`${inter.className} antialiased`}>
         <ThemeProvider>
           {children}
         </ThemeProvider>
@@ -25,3 +31,4 @@ export default function RootLayout({
     </html>
   )
 }
+
