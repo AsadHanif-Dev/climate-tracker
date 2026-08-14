@@ -60,9 +60,20 @@ export default function StatsCard({
       </div>
 
       {/* Metric value */}
-      <p className="metric-value text-[2rem] font-semibold leading-none tracking-tight text-[var(--text-primary)] mb-1">
+      <p className="metric-value text-[1.75rem] sm:text-[2rem] font-semibold leading-tight tracking-tight text-[var(--text-primary)] mb-1">
         {format === 'co2'
-          ? <>{value.toFixed(2)}<span className="text-base font-normal text-[var(--text-muted)] ml-1.5">kg CO₂</span></>
+          ? <>
+              {value.toFixed(2)}
+              {/* A 3-digit total plus the unit does not fit one line in a
+                  half-width card, so the unit takes its own line on mobile and
+                  stays whole rather than splitting into "kg" / "CO₂". */}
+              <span className="
+                block sm:inline text-base font-normal text-[var(--text-muted)]
+                sm:ml-1.5 whitespace-nowrap
+              ">
+                kg CO₂
+              </span>
+            </>
           : value
         }
       </p>

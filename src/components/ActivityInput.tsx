@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Activity, ActivityType } from '@/types';
@@ -141,7 +141,7 @@ export default function ActivityInput({ onAddActivity }: ActivityInputProps) {
           </p>
         </div>
 
-        {/* COâ‚‚ preview */}
+        {/* CO₂ preview */}
         <div
           className={`
             rounded-xl px-4 py-3 border transition-all duration-200

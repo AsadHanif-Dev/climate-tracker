@@ -1,5 +1,6 @@
 import { Activity, DailyTotal } from '@/types';
 import { CO2_FACTORS } from '@/constants/co2Factors';
+import { toDateKey } from '@/utils/helpers';
 
 const STORAGE_KEY = 'climate_tracker_activities';
 
@@ -92,14 +93,14 @@ export const getActivitiesForDate = (
 
 // Get total CO2 for today
 export const getTodayTotal = (activities: Activity[]): number => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = toDateKey(new Date());
   return getActivitiesForDate(activities, today)
     .reduce((sum, activity) => sum + activity.co2, 0);
 };
 
 // Get category totals for today
 export const getTodayCategoryTotals = (activities: Activity[]) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = toDateKey(new Date());
   const todayActivities = getActivitiesForDate(activities, today);
   
   const totals = {
@@ -115,8 +116,35 @@ export const getTodayCategoryTotals = (activities: Activity[]) => {
   return totals;
 };
 
-// Get last N days of data
+/**
+ * Returns exactly `days` calendar days ending today, oldest first, including
+ * days with no activity as zero entries.
+ *
+ * Slicing the recorded days instead would sum whatever the last N *entries*
+ * happened to be, so a 7-day total could silently span months of gaps and the
+ * daily average would divide by the wrong denominator.
+ */
 export const getLastNDays = (activities: Activity[], days: number): DailyTotal[] => {
-  const dailyTotals = getDailyTotals(activities);
-  return dailyTotals.slice(-days);
+  const recorded = new Map(getDailyTotals(activities).map(d => [d.date, d]));
+  const today = new Date();
+  const window: DailyTotal[] = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const date = toDateKey(d);
+    window.push(
+      recorded.get(date) ?? {
+        date,
+        total: 0,
+        byCategory: { travel: 0, energy: 0, food: 0 },
+      }
+    );
+  }
+
+  return window;
 };
+
+// Days inside the window that actually have logged activity.
+export const countActiveDays = (window: DailyTotal[]): number =>
+  window.filter(d => d.total > 0).length;

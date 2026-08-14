@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -11,7 +11,7 @@ interface CategoryBreakdownProps {
   loading?: boolean;
 }
 
-// Muted, desaturated palette â€” no neon
+// Muted, desaturated palette — no neon
 const CATEGORIES = [
   { key: 'travel', label: 'Travel',  color: 'var(--travel)', bar: '#5778a0' },
   { key: 'energy', label: 'Energy',  color: 'var(--energy)', bar: '#a67240' },
@@ -68,7 +68,7 @@ export default function CategoryBreakdown({ data, loading = false }: CategoryBre
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Today's Breakdown</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Today&rsquo;s Breakdown</h2>
           <p className="text-xs text-[var(--text-muted)] mt-0.5">Emissions by category</p>
         </div>
         {total > 0 && (

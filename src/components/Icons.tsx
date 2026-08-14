@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 /**
  * Icon system — stroke-based, 24x24 viewBox, strokeWidth 1.5

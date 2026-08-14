@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Activity } from '@/types';
@@ -7,7 +7,9 @@ import {
   getTodayTotal,
   getTodayCategoryTotals,
   getLastNDays,
+  countActiveDays,
 } from '@/utils/storage';
+import { generateDemoActivities } from '@/utils/demoData';
 import ActivityInput     from '@/components/ActivityInput';
 import ActivityList      from '@/components/ActivityList';
 import DailyTrendChart   from '@/components/DailyTrendChart';
@@ -23,7 +25,7 @@ import {
   TrashIcon,
 } from '@/components/Icons';
 
-/* â”€â”€ Skeleton cards for initial load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Skeleton cards for initial load ───────────────────────────────────── */
 function SkeletonCards() {
   return (
     <>
@@ -38,51 +40,118 @@ function SkeletonCards() {
   );
 }
 
+const DEMO_DISMISSED_KEY = 'climate_tracker_demo_dismissed';
+
 export default function Home() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [mounted, setMounted]       = useState(false);
+  const [isDemo, setIsDemo]         = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setActivities(storage.getActivities());
+    const stored = storage.getActivities();
+
+    if (stored.length > 0) {
+      setActivities(stored);
+      return;
+    }
+
+    // An empty dashboard reads as a broken app, so a first-time visitor gets a
+    // sample footprint instead of four zeroes and two empty charts. It stays in
+    // memory only, and never once they have chosen to start fresh.
+    const dismissed =
+      typeof window !== 'undefined' &&
+      window.localStorage.getItem(DEMO_DISMISSED_KEY) === '1';
+
+    if (!dismissed) {
+      setActivities(generateDemoActivities(30));
+      setIsDemo(true);
+    }
   }, []);
 
+  const dismissDemo = () => {
+    setIsDemo(false);
+    try {
+      window.localStorage.setItem(DEMO_DISMISSED_KEY, '1');
+    } catch {
+      /* storage unavailable (private mode); demo simply returns next visit */
+    }
+  };
+
   const handleAddActivity = (activity: Activity) => {
+    // The first real entry replaces the sample set rather than merging into it,
+    // so a real log can never be polluted with generated data.
+    if (isDemo) {
+      dismissDemo();
+      storage.saveActivities([activity]);
+      setActivities([activity]);
+      return;
+    }
     setActivities(storage.addActivity(activity));
   };
 
   const handleRemoveActivity = (id: string) => {
+    if (isDemo) {
+      setActivities(prev => prev.filter(a => a.id !== id));
+      return;
+    }
     setActivities(storage.removeActivity(id));
   };
 
   const handleClearAll = () => {
+    if (isDemo) {
+      dismissDemo();
+      setActivities([]);
+      return;
+    }
     if (confirm('Clear all activities? This cannot be undone.')) {
       storage.clearActivities();
       setActivities([]);
     }
   };
 
-  /* â”€â”€ Derived stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  const handleLoadDemo = () => {
+    setActivities(generateDemoActivities(30));
+    setIsDemo(true);
+    try {
+      window.localStorage.removeItem(DEMO_DISMISSED_KEY);
+    } catch {
+      /* no-op */
+    }
+  };
+
+  /* ── Derived stats ──────────────────────────────────────────────────── */
   const todayTotal         = mounted ? getTodayTotal(activities) : 0;
   const todayCategories    = mounted ? getTodayCategoryTotals(activities) : { travel: 0, energy: 0, food: 0 };
   const last7Days          = mounted ? getLastNDays(activities, 7)  : [];
   const last30Days         = mounted ? getLastNDays(activities, 30) : [];
   const weekTotal          = last7Days.reduce((s, d) => s + d.total, 0);
   const monthTotal         = last30Days.reduce((s, d) => s + d.total, 0);
-  const weeklyAvg          = last7Days.length > 0 ? weekTotal / last7Days.length : 0;
+  // The window is always exactly 7 days, so this is a true daily average
+  // rather than an average across only the days that happen to have entries.
+  const weeklyAvg          = weekTotal / 7;
   const totalEntries       = activities.length;
+  const activeDays         = countActiveDays(last30Days);
 
-  /* â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  // Week-over-week change: this week's total against the seven days before it.
+  const last14Days   = mounted ? getLastNDays(activities, 14) : [];
+  const priorWeek    = last14Days.slice(0, 7).reduce((s, d) => s + d.total, 0);
+  const weekTrend    =
+    priorWeek > 0
+      ? { value: ((weekTotal - priorWeek) / priorWeek) * 100, isPositive: weekTotal > priorWeek }
+      : undefined;
+
+  /* ── Layout ─────────────────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-[var(--bg-page)] flex flex-col">
 
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Header ───────────────────────────────────────────────────── */}
       <header className="bg-[var(--bg-surface)] border-b border-[var(--border)] sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
 
           {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* Brand mark â€” simple circle with globe lines */}
+            {/* Brand mark — simple circle with globe lines */}
             <div className="w-7 h-7 rounded-lg bg-forest-500 flex items-center justify-center shrink-0">
               <GlobeIcon className="w-[15px] h-[15px] text-white" />
             </div>
@@ -118,10 +187,10 @@ export default function Home() {
         </div>
       </header>
 
-      {/* â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Main ─────────────────────────────────────────────────────── */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 lg:px-8 py-8 space-y-6">
 
-        {/* â”€â”€ Page title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Page title ─────────────────────────────────────────────── */}
         <div className="flex items-end justify-between">
           <div>
             <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight">
@@ -138,7 +207,65 @@ export default function Home() {
           )}
         </div>
 
-        {/* â”€â”€ Metric cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Metric cards ───────────────────────────────────────────── */}
+        {mounted && isDemo && (
+          <div
+            role="status"
+            className="
+              flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4
+              rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3
+            "
+          >
+            <span className="
+              shrink-0 self-start sm:self-auto rounded-md bg-forest-500/10
+              px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide
+              text-forest-600 dark:text-forest-400
+            ">
+              Sample data
+            </span>
+            <p className="flex-1 text-xs text-[var(--text-muted)]">
+              These 30 days are generated so the charts have something to show.
+              Nothing is saved until you log your own activity.
+            </p>
+            <button
+              onClick={handleClearAll}
+              className="
+                shrink-0 self-start sm:self-auto rounded-lg border border-[var(--border)]
+                px-3 py-1.5 text-xs font-medium text-[var(--text-primary)]
+                hover:border-forest-500 hover:text-forest-600 dark:hover:text-forest-400
+                transition-colors duration-150
+              "
+            >
+              Start with an empty log
+            </button>
+          </div>
+        )}
+
+        {mounted && !isDemo && activities.length === 0 && (
+          <div
+            role="status"
+            className="
+              flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4
+              rounded-xl border border-dashed border-[var(--border)] px-4 py-3
+            "
+          >
+            <p className="flex-1 text-xs text-[var(--text-muted)]">
+              Your log is empty. Add an activity on the left to start tracking.
+            </p>
+            <button
+              onClick={handleLoadDemo}
+              className="
+                shrink-0 self-start sm:self-auto rounded-lg border border-[var(--border)]
+                px-3 py-1.5 text-xs font-medium text-[var(--text-primary)]
+                hover:border-forest-500 hover:text-forest-600 dark:hover:text-forest-400
+                transition-colors duration-150
+              "
+            >
+              Show sample data
+            </button>
+          </div>
+        )}
+
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Key metrics">
           {!mounted ? (
             <SkeletonCards />
@@ -157,6 +284,7 @@ export default function Home() {
                 icon={<ChartBarIcon className="w-[15px] h-[15px]" />}
                 subtitle={`${weeklyAvg.toFixed(2)} kg avg / day`}
                 accentColor="slate"
+                trend={weekTrend}
               />
               <StatsCard
                 title="30-Day Total"
@@ -170,21 +298,21 @@ export default function Home() {
                 value={totalEntries}
                 format="number"
                 icon={<ListIcon className="w-[15px] h-[15px]" />}
-                subtitle={`Across ${last30Days.length} tracked days`}
+                subtitle={`Across ${activeDays} active ${activeDays === 1 ? 'day' : 'days'}`}
                 accentColor="forest"
               />
             </>
           )}
         </section>
 
-        {/* â”€â”€ Body grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Body grid ──────────────────────────────────────────────── */}
         {/*
           Layout:
-          â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-          â”‚  Log Activity    â”‚  Category Breakdown              â”‚
-          â”‚  (form panel)    â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-          â”‚                  â”‚  Emission Trend (area chart)     â”‚
-          â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+          ┌──────────────────┬──────────────────────────────────┐
+          │  Log Activity    │  Category Breakdown              │
+          │  (form panel)    ├──────────────────────────────────┤
+          │                  │  Emission Trend (area chart)     │
+          └──────────────────┴──────────────────────────────────┘
         */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start" aria-label="Main panels">
           {/* Left: form */}
@@ -199,7 +327,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* â”€â”€ Activity log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Activity log ───────────────────────────────────────────── */}
         <section aria-label="Activity log">
           <ActivityList
             activities={activities}
@@ -209,7 +337,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Footer ───────────────────────────────────────────────────── */}
       <footer className="border-t border-[var(--border)] bg-[var(--bg-surface)] mt-4">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">

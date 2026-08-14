@@ -1,5 +1,6 @@
-﻿'use client';
+'use client';
 
+import { useState } from 'react';
 import { Activity } from '@/types';
 import { formatDate } from '@/utils/helpers';
 import { CO2_FACTORS } from '@/constants/co2Factors';
@@ -57,6 +58,13 @@ export default function ActivityList({ activities, onRemoveActivity, loading = f
   }, {});
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
+  // A month of logging is a few hundred rows, which buries everything below it.
+  // Show the most recent week and let the rest be opened on demand.
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE_DAYS = 7;
+  const visibleDates = showAll ? sortedDates : sortedDates.slice(0, VISIBLE_DAYS);
+  const hiddenDays = sortedDates.length - visibleDates.length;
+
   return (
     <div className="bg-[var(--bg-surface)] rounded-2xl shadow-card p-6">
       {/* Header */}
@@ -86,7 +94,7 @@ export default function ActivityList({ activities, onRemoveActivity, loading = f
         </div>
       ) : (
         <div className="space-y-7 thin-scrollbar">
-          {sortedDates.map(date => {
+          {visibleDates.map(date => {
             const dateActivities = grouped[date];
             const dateTotal      = dateActivities.reduce((sum, a) => sum + a.co2, 0);
             const catConfig      = CATEGORY_CONFIG;
@@ -151,7 +159,7 @@ export default function ActivityList({ activities, onRemoveActivity, loading = f
                           <span className="text-xs font-normal text-[var(--text-muted)] ml-1">kg</span>
                         </span>
 
-                        {/* Remove button â€” shows on hover */}
+                        {/* Remove button — shows on hover */}
                         <button
                           onClick={() => onRemoveActivity(activity.id)}
                           className="
@@ -172,6 +180,23 @@ export default function ActivityList({ activities, onRemoveActivity, loading = f
               </div>
             );
           })}
+
+          {(hiddenDays > 0 || showAll) && (
+            <button
+              onClick={() => setShowAll(v => !v)}
+              aria-expanded={showAll}
+              className="
+                w-full rounded-lg border border-[var(--border)] py-2.5
+                text-xs font-medium text-[var(--text-secondary)]
+                hover:border-forest-500 hover:text-forest-600 dark:hover:text-forest-400
+                transition-colors duration-150
+              "
+            >
+              {showAll
+                ? `Show recent ${VISIBLE_DAYS} days`
+                : `Show ${hiddenDays} earlier ${hiddenDays === 1 ? 'day' : 'days'}`}
+            </button>
+          )}
         </div>
       )}
     </div>

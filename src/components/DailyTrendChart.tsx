@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import {
   AreaChart, Area, XAxis, YAxis,
@@ -6,21 +6,21 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { DailyTotal } from '@/types';
-import { formatDate } from '@/utils/helpers';
+import { formatDateShort } from '@/utils/helpers';
 
 interface DailyTrendChartProps {
   data: DailyTotal[];
   loading?: boolean;
 }
 
-// Muted analytical palette â€” no neon
+// Muted analytical palette — no neon
 const SERIES = [
   { key: 'travel', label: 'Travel',  stroke: '#5778a0', fill: '#5778a020' },
   { key: 'energy', label: 'Energy',  stroke: '#a67240', fill: '#a6724018' },
   { key: 'food',   label: 'Food',    stroke: '#2e8b5a', fill: '#2e8b5a15' },
 ] as const;
 
-// Custom tooltip â€” clean card design
+// Custom tooltip — clean card design
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const total = payload.reduce((s: number, p: any) => s + (p.value ?? 0), 0);
@@ -85,11 +85,11 @@ export default function DailyTrendChart({ data, loading = false }: DailyTrendCha
     );
   }
 
-  // Trim to last 14 data points max â€” avoid overcrowded chart
+  // Trim to last 14 data points max — avoid overcrowded chart
   const trimmed = data.slice(-14);
 
   const chartData = trimmed.map(item => ({
-    date:   formatDate(item.date),
+    date:   formatDateShort(item.date),
     travel: Number(item.byCategory.travel.toFixed(3)),
     energy: Number(item.byCategory.energy.toFixed(3)),
     food:   Number(item.byCategory.food.toFixed(3)),
@@ -114,7 +114,9 @@ export default function DailyTrendChart({ data, loading = false }: DailyTrendCha
         </div>
       </div>
 
-      {data.length === 0 ? (
+      {/* The window is zero-filled to a fixed length, so an empty log now
+          arrives as N days of zeroes rather than an empty array. */}
+      {data.every(d => d.total === 0) ? (
         <EmptyState />
       ) : (
         <div className="h-64">

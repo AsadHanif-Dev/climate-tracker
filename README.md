@@ -15,6 +15,12 @@ A real-time web application for tracking your daily CO₂ footprint, built with 
   - Pie chart displaying category breakdown
   - Statistics cards for quick insights
   
+- **Sample data on first run**: a generated 30-day footprint populates the
+  dashboard so the charts are readable immediately. It is held in memory only,
+  never written to storage, and is replaced the moment you log a real activity
+- **Rolling calendar windows**: 7- and 30-day totals cover the actual calendar
+  window including days with no activity, so averages use the right denominator
+  and gaps in logging do not distort the trend
 - **Data Persistence**: All activities stored in browser localStorage
 - **Dark/Light Mode**: Toggle between themes with system preference detection
 - **Responsive Design**: Optimized for desktop, tablet, and mobile devices
